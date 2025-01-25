@@ -32,7 +32,7 @@ BOOKMAKER_ALIASES = {
     "pmu / vbet": ["pmu", "vbet", "PMU", "Vbet", "VBET", "PMU / Vbet", "pmu / vbet"],
 }
 
-# Serveur keep-alive pour Replit ou autre hébergement
+# Serveur keep-alive pour hébergement
 app = Flask('')
 
 @app.route('/')
@@ -148,6 +148,34 @@ async def conversion(ctx):
         f"⚠️ **Cash nécessaire en HA (en liability)** : {cash_necessaire:.2f}\n"
         f"{commentaire}"
     )
+
+    # Étape 4 : Demander le partage
+    await ctx.send("📤 **Souhaitez-vous partager cette conversion dans le groupe ? (oui/non)**")
+    msg_share = await bot.wait_for("message", check=check_author)
+    if msg_share.content.lower() == "oui":
+        await ctx.send("📍 **Cette conversion concerne quelle issue ?**")
+        msg_issue = await bot.wait_for("message", check=check_author)
+        issue = msg_issue.content.strip()
+
+        await ctx.send("⏰ **À quelle heure se passe l’événement ?**")
+        msg_time = await bot.wait_for("message", check=check_author)
+        event_time = msg_time.content.strip()
+
+        await ctx.send("💰 **Quelle est la liquidité disponible ?**")
+        msg_liquidite = await bot.wait_for("message", check=check_author)
+        liquidite = msg_liquidite.content.strip()
+
+        await ctx.send(
+            f"🎯 **Conversion {alias_original}** : {couleur}  - {taux_conversion:.2f}% 🎯\n"
+            f"📍 **Issue** : {issue}\n"
+            f"⏰ **Heure** : {event_time}\n\n"
+            f"🔢 **Cotes** :\n"
+            f"    •   ARJEL : {cote_arjel}\n"
+            f"    •   Lay : {cote_ha}\n"
+            f"💰 **Liquidité disponible** : {liquidite}€"
+        )
+    else:
+        await ctx.send("😅 **Hassoul mon frère, pour une prochaine fois !**")
 
 # Démarrage du bot avec le serveur keep-alive
 if __name__ == "__main__":
