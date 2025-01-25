@@ -7,9 +7,30 @@ import os
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
-TOKEN = os.getenv("TOKEN")  # Récupère le token depuis le fichier .env
+TOKEN = os.getenv("TOKEN")  # Récupère le token Discord depuis le fichier .env
 
-# Création du bot avec ses intentions
+# Serveur keep-alive pour hébergement
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Le bot est en ligne !"
+
+@app.route('/ping')
+def ping():
+    return "Pong! Le serveur est actif et répond aux pings d'Uptime Robot."
+
+def run():
+    """Démarre le serveur Flask sur un thread séparé."""
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    """Lance le serveur Flask en arrière-plan pour répondre aux pings."""
+    t = Thread(target=run)
+    t.daemon = True
+    t.start()
+
+# Configuration des intentions et création du bot Discord
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -31,20 +52,6 @@ BOOKMAKER_ALIASES = {
     "psel / zebet": ["psel", "zebet", "Psel", "Zebet", "PSEL", "ZEBET", "psel / zebet", "Psel / Zebet"],
     "pmu / vbet": ["pmu", "vbet", "PMU", "Vbet", "VBET", "PMU / Vbet", "pmu / vbet"],
 }
-
-# Serveur keep-alive pour hébergement
-app = Flask('')
-
-@app.route('/')
-def home():
-    return "Le bot est en ligne !"
-
-def run():
-    app.run(host='0.0.0.0', port=8080)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
 
 # Fonctions utilitaires
 def parse_float(value):
@@ -149,7 +156,7 @@ async def conversion(ctx):
         f"{commentaire}"
     )
 
-    # Étape 4 : Demander le partage
+    # Partage
     await ctx.send("📤 **Souhaitez-vous partager cette conversion dans le groupe ? (oui/non)**")
     msg_share = await bot.wait_for("message", check=check_author)
     if msg_share.content.lower() == "oui":
@@ -177,7 +184,9 @@ async def conversion(ctx):
     else:
         await ctx.send("😅 **Hassoul mon frère, pour une prochaine fois !**")
 
+    await ctx.send("✨ **Merci pour cette conversation ! À la prochaine fois, et bon courage dans tes conversions.** 🙌")
+
 # Démarrage du bot avec le serveur keep-alive
 if __name__ == "__main__":
-    keep_alive()
-    bot.run(TOKEN)
+    keep_alive()  # Démarrer le serveur Flask
+    bot.run(TOKEN)  # Démarrer le bot Discord
