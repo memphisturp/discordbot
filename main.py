@@ -269,17 +269,11 @@ async def maxfb(ctx):
         await ctx.send("❌ La cote HA doit être supérieure à 1")
         return
 
-    # Debugging: Afficher les valeurs entrées
-    await ctx.send(f"Debug: Cote ARJEL = {cote_arjel}, Cote HA = {cote_ha}, Cash HA = {cash_ha}")
-
     # Calcul du maximum de freebet possible
     max_fb, mise_ha = calculate_max_freebet(cote_arjel, cote_ha, cash_ha)
     if max_fb is None or mise_ha is None:
         await ctx.send("❌ Impossible de calculer avec ces valeurs")
         return
-
-    # Debugging: Afficher les résultats du calcul
-    await ctx.send(f"Debug: Max FB = {max_fb}, Mise HA = {mise_ha}")
 
     # Vérification de la mise minimale en HA (6€)
     warning_mise_minimale = ""
@@ -324,8 +318,7 @@ async def maxfb(ctx):
     # Calcul du cash nécessaire pour respecter la mise minimale en HA
     cash_necessaire = mise_ha_min * (cote_arjel - 1) / (cote_ha - 0.03)
 
-    # Calculer la liability nécessaire pour respecter la mise minimale de 6€
-    liability_necessaire = mise_ha_min * (cote_arjel - 1)
+   
 
     # Affichage des résultats
     result_message = (
@@ -340,7 +333,12 @@ async def maxfb(ctx):
         f"{warning_mise_minimale}\n"
         f"💰 Cash HA nécessaire (en liability) pour faire cette conversion avec ces cotes et la mise minimale de 6€ : {liability_necessaire:.2f}€\n"
     )
-    await ctx.send(result_message)
+
+    # Afficher le message d'avertissement seulement si la mise minimale n'est pas respectée
+    if mise_ha < 6:
+        await ctx.send(result_message)
+    else:
+        await ctx.send(result_message)
 
 @bot.command()
 async def historique(ctx, limit: int = 5):
