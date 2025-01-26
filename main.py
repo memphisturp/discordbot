@@ -269,11 +269,17 @@ async def maxfb(ctx):
         await ctx.send("❌ La cote HA doit être supérieure à 1")
         return
 
+    # Debugging: Afficher les valeurs entrées
+    await ctx.send(f"Debug: Cote ARJEL = {cote_arjel}, Cote HA = {cote_ha}, Cash HA = {cash_ha}")
+
     # Calcul du maximum de freebet possible
     max_fb, mise_ha = calculate_max_freebet(cote_arjel, cote_ha, cash_ha)
     if max_fb is None or mise_ha is None:
         await ctx.send("❌ Impossible de calculer avec ces valeurs")
         return
+
+    # Debugging: Afficher les résultats du calcul
+    await ctx.send(f"Debug: Max FB = {max_fb}, Mise HA = {mise_ha}")
 
     # Vérification de la mise minimale en HA (6€)
     warning_mise_minimale = ""
@@ -292,6 +298,10 @@ async def maxfb(ctx):
     if cash_ha < cash_necessaire:
         await ctx.send(f"❌ Vous avez besoin de {cash_necessaire:.2f}€ en cash HA pour respecter la mise minimale de 6€.")
         return
+
+    # Calcul du nombre de freebets possibles avec le cash disponible
+    nb_freebets_possibles = cash_ha / mise_ha
+    await ctx.send(f"💰 Avec votre cash disponible de {cash_ha:.2f}€, vous pouvez convertir jusqu'à {nb_freebets_possibles:.2f} freebets avec ces cotes.")
 
     # Calcul du taux de conversion
     ha_si_issue_arjel = -mise_ha * (cote_ha - 1)
@@ -312,7 +322,7 @@ async def maxfb(ctx):
     history_manager.add_conversion(conversion_data)
 
     # Affichage des résultats
-    await ctx.send(
+    result_message = (
         f"💫 **Résultats du calcul maximum**\n\n"
         f"💰 **Freebet maximum possible** : {max_fb:.2f}€\n"
         f"📊 **Mise en HA (stake)** : {mise_ha:.2f}€\n"
@@ -320,9 +330,11 @@ async def maxfb(ctx):
         f"ℹ️ Ces calculs sont basés sur :\n"
         f"   • Cote ARJEL : {cote_arjel}\n"
         f"   • Cote HA : {cote_ha}\n"
-        f"   • Cash HA disponible : {cash_ha}€"
-        f"{warning_mise_minimale}"
+        f"   • Cash HA disponible : {cash_ha}€\n"
+        f"{warning_mise_minimale}\n"
+        f"💰 Cash HA nécessaire (en liability) pour faire cette conversion avec ces cotes et la mise minimale de 6€ : {cash_necessaire:.2f}€"
     )
+    await ctx.send(result_message)
 
 @bot.command()
 async def historique(ctx, limit: int = 5):
