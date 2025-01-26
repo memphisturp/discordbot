@@ -1,36 +1,19 @@
 from flask import Flask
 from threading import Thread
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
+import logging
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
-TOKEN = os.getenv("TOKEN")  # Récupère le token Discord depuis le fichier .env
+TOKEN = os.getenv("TOKEN")  # Récupère le token depuis le fichier .env
 
-# Serveur keep-alive pour hébergement
-app = Flask('')
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
 
-@app.route('/')
-def home():
-    return "Le bot est en ligne !"
-
-@app.route('/ping')
-def ping():
-    return "Pong! Le serveur est actif et répond aux pings d'Uptime Robot."
-
-def run():
-    """Démarre le serveur Flask sur un thread séparé."""
-    app.run(host='0.0.0.0', port=8080)
-
-def keep_alive():
-    """Lance le serveur Flask en arrière-plan pour répondre aux pings."""
-    t = Thread(target=run)
-    t.daemon = True
-    t.start()
-
-# Configuration des intentions et création du bot Discord
+# Création du bot avec ses intentions
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -53,6 +36,20 @@ BOOKMAKER_ALIASES = {
     "pmu / vbet": ["pmu", "vbet", "PMU", "Vbet", "VBET", "PMU / Vbet", "pmu / vbet"],
 }
 
+# Serveur keep-alive pour hébergement
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Le bot est en ligne !"
+
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
 # Fonctions utilitaires
 def parse_float(value):
     """Convertit une chaîne avec '.' ou ',' en float. Renvoie None si la conversion échoue."""
@@ -73,6 +70,28 @@ def get_normalized_bookmaker(input_name):
 @bot.event
 async def on_ready():
     print(f"Bot connecté en tant que {bot.user}")
+    if not status_task.is_running():
+        status_task.start()
+
+@tasks.loop(minutes=5)
+async def status_task():
+    """Tâche pour maintenir le bot actif et logger son statut"""
+    logging.info(f"Bot est toujours en ligne - {bot.user}")
+
+@bot.event
+async def on_disconnect():
+    """Gérer les déconnexions"""
+    logging.warning("Bot déconnecté - Tentative de reconnexion...")
+
+@bot.event
+async def on_resumed():
+    """Gérer les reprises de connexion"""
+    logging.info("Connexion reprise avec succès!")
+
+@bot.event
+async def on_error(event, *args, **kwargs):
+    """Gérer les erreurs"""
+    logging.error(f"Une erreur est survenue dans {event}: {args} {kwargs}")
 
 # Commande principale de conversion
 @bot.command()
@@ -156,7 +175,7 @@ async def conversion(ctx):
         f"{commentaire}"
     )
 
-    # Partage
+    # Étape 4 : Demander le partage
     await ctx.send("📤 **Souhaitez-vous partager cette conversion dans le groupe ? (oui/non)**")
     msg_share = await bot.wait_for("message", check=check_author)
     if msg_share.content.lower() == "oui":
@@ -184,9 +203,13 @@ async def conversion(ctx):
     else:
         await ctx.send("😅 **Hassoul mon frère, pour une prochaine fois !**")
 
-    await ctx.send("✨ **Merci pour cette conversation ! À la prochaine fois, et bon courage dans tes conversions.** 🙌")
-
 # Démarrage du bot avec le serveur keep-alive
 if __name__ == "__main__":
-    keep_alive()  # Démarrer le serveur Flask
-    bot.run(TOKEN)  # Démarrer le bot Discord
+    keep_alive()
+    while True:
+        try:
+            bot.run(TOKEN)
+        except Exception as e:
+            logging.error(f"Erreur de connexion: {e}")
+            continue
+
