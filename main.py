@@ -206,10 +206,9 @@ async def conversion(ctx):
         msg_share = await bot.wait_for("message", check=check_author, timeout=120)
         if msg_share.content.strip().lower() == "oui":
             # Demander des informations pour le message final
-            athlete = await ask_for_input("🏅 Entrez l'athlète ou l'issue :", str)
+            athlete = await ask_for_input("🏅 Entrez l'athlète/l'issue :", str)
             heure = await ask_for_input("⏰ Entrez l'heure (ex: Demain 11h) :", str)
-            issue = await ask_for_input("📍 Entrez l'issue (ex: huetter -> winner) :", str)
-            message_final = f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n🏅 Athlète : {athlete}\n📍 Issue : {issue}\n⏰ Heure : {heure}\n\n🔢 Cotes :\n    •   ARJEL : {cote_arjel}\n    •   Lay : {cote_ha}\n💰 Liquidité disponible : {cash_necessaire:.2f}€"
+            message_final = f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n🏅 Athlète : {athlete}\n⏰ Heure : {heure}\n\n🔢 Cotes :\n    •   ARJEL : {cote_arjel}\n    •   Lay : {cote_ha}\n💰 Liquidité disponible : {cash_necessaire:.2f}€"
             await ctx.send(message_final)
         else:
             await ctx.send("❌ Pas de problème, à bientôt pour de nouvelles conversions, SBA's team !")
