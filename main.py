@@ -292,7 +292,7 @@ async def maxfb(ctx):
         warning_mise_minimale += f"\n💡 Pour respecter la mise minimale de 6€ en HA :\n"
         warning_mise_minimale += f"   • Mise HA minimale : 6.00€\n"
         warning_mise_minimale += f"   • Freebet correspondant : {max_fb_min:.2f}€\n"
-        warning_mise_minimale += f"   • Cash nécessaire (liability) : {cash_necessaire:.2f}€"
+        warning_mise_minimale += f"   • Cash à mettre (en stake) : {cash_necessaire:.2f}€"
 
     # Calcul du cash nécessaire pour respecter la mise minimale en HA
     if cash_ha < cash_necessaire:
@@ -321,6 +321,12 @@ async def maxfb(ctx):
     }
     history_manager.add_conversion(conversion_data)
 
+    # Calcul du cash nécessaire pour respecter la mise minimale en HA
+    cash_necessaire = mise_ha_min * (cote_arjel - 1) / (cote_ha - 0.03)
+
+    # Calculer la liability nécessaire pour respecter la mise minimale de 6€
+    liability_necessaire = mise_ha_min * (cote_arjel - 1)
+
     # Affichage des résultats
     result_message = (
         f"💫 **Résultats du calcul maximum**\n\n"
@@ -332,7 +338,7 @@ async def maxfb(ctx):
         f"   • Cote HA : {cote_ha}\n"
         f"   • Cash HA disponible : {cash_ha}€\n"
         f"{warning_mise_minimale}\n"
-        f"💰 Cash HA nécessaire (en liability) pour faire cette conversion avec ces cotes et la mise minimale de 6€ : {cash_necessaire:.2f}€"
+        f"💰 Cash HA nécessaire (en liability) pour faire cette conversion avec ces cotes et la mise minimale de 6€ : {liability_necessaire:.2f}€\n"
     )
     await ctx.send(result_message)
 
