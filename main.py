@@ -260,6 +260,17 @@ async def maxfb(ctx):
         await ctx.send("❌ Impossible de calculer avec ces valeurs")
         return
 
+    # Vérification de la mise minimale en HA (6€)
+    warning_mise_minimale = ""
+    if mise_ha < 6:
+        warning_mise_minimale = "\n⚠️ **ATTENTION** : La mise en HA (stake) est inférieure à 6€, ce qui est sous le minimum requis sur HA !"
+        # Recalculer pour la mise minimale de 6€
+        mise_ha_min = 6
+        max_fb_min = mise_ha_min * (cote_ha - 0.03) / ((cote_arjel - 1) * (1 - 0))
+        warning_mise_minimale += f"\n💡 Pour respecter la mise minimale de 6€ en HA :\n"
+        warning_mise_minimale += f"   • Mise HA minimale : 6.00€\n"
+        warning_mise_minimale += f"   • Freebet correspondant : {max_fb_min:.2f}€"
+
     # Calcul du taux de conversion
     ha_si_issue_arjel = -mise_ha * (cote_ha - 1)
     arjel_si_cote_passe = max_fb * (cote_arjel - 1)
@@ -288,18 +299,46 @@ async def maxfb(ctx):
         f"   • Cote ARJEL : {cote_arjel}\n"
         f"   • Cote HA : {cote_ha}\n"
         f"   • Cash HA disponible : {cash_ha}€"
+        f"{warning_mise_minimale}"
     )
 
 @bot.command()
 async def historique(ctx, limit: int = 5):
-    """Affiche l'historique des dernières conversions"""
+    """Affiche l'historique des dernières conversions avec moyenne pondérée"""
     conversions = history_manager.get_history(limit=limit)
     
     if not conversions:
         await ctx.send("❌ Aucune conversion trouvée dans l'historique.")
         return
     
+    # Calcul des moyennes pondérées
+    total_fb = 0
+    somme_ponderee = 0
+    nb_conversions_standard = 0
+    
+    for conv in conversions:
+        if conv.get('type') != 'maxfb':  # Uniquement pour les conversions standards
+            nb_fb = conv.get('nb_fb', 0)
+            taux = conv.get('taux', 0)
+            if nb_fb and taux:
+                total_fb += nb_fb
+                somme_ponderee += (nb_fb * taux)
+                nb_conversions_standard += 1
+    
+    # Calcul de la moyenne pondérée
+    moyenne_ponderee = (somme_ponderee / total_fb) if total_fb > 0 else 0
+    
+    # En-tête avec les statistiques
     response = "📜 **Historique des conversions**\n\n"
+    
+    if nb_conversions_standard > 0:
+        response += f"📊 **Statistiques globales**:\n"
+        response += f"• Nombre de conversions : {nb_conversions_standard}\n"
+        response += f"• Total freebets convertis : {total_fb:.2f}€\n"
+        response += f"• Taux moyen pondéré : {moyenne_ponderee:.2f}%\n\n"
+    
+    # Affichage des conversions individuelles
+    response += "🔄 **Dernières conversions**:\n"
     for conv in conversions:
         date = datetime.fromisoformat(conv['timestamp']).strftime('%d/%m/%Y %H:%M')
         
@@ -308,9 +347,9 @@ async def historique(ctx, limit: int = 5):
             response += f"💰 Max FB: {conv['max_fb']:.2f}€ | Mise HA: {conv['mise_ha']:.2f}€\n"
             response += f"📊 Taux: {conv['taux']:.2f}% | Cash HA: {conv['cash_ha']:.2f}€\n"
         else:
-            response += f"🎯 **Conversion Standard** - {date}\n"
-            response += f"💰 Mise: {conv.get('mise_arjel', 'N/A')}€ | Cash: {conv.get('cash_necessaire', 'N/A')}€\n"
-            response += f"📊 Taux: {conv.get('taux', 'N/A')}%\n"
+            response += f"🎯 **Conversion** - {date}\n"
+            response += f"💰 Freebet: {conv.get('nb_fb', 'N/A')}€ | Cash: {conv.get('cash_necessaire', 'N/A')}€\n"
+            response += f"📊 Taux: {conv.get('taux', 'N/A')}% | Mise HA: {conv.get('mise_ha', 'N/A')}€\n"
         response += "\n"
     
     await ctx.send(response)
