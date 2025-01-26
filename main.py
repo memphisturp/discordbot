@@ -283,12 +283,13 @@ async def maxfb(ctx):
         # Recalculer pour la mise minimale de 6€
         mise_ha_min = 6
         max_fb_min = mise_ha_min * (cote_ha - 0.03) / ((cote_arjel - 1) * (1 - 0))
+        cash_necessaire = mise_ha_min * (cote_arjel - 1) / (cote_ha - 0.03)
         warning_mise_minimale += f"\n💡 Pour respecter la mise minimale de 6€ en HA :\n"
         warning_mise_minimale += f"   • Mise HA minimale : 6.00€\n"
-        warning_mise_minimale += f"   • Freebet correspondant : {max_fb_min:.2f}€"
+        warning_mise_minimale += f"   • Freebet correspondant : {max_fb_min:.2f}€\n"
+        warning_mise_minimale += f"   • Cash nécessaire (liability) : {cash_necessaire:.2f}€"
 
     # Calcul du cash nécessaire pour respecter la mise minimale en HA
-    cash_necessaire = mise_ha_min * (cote_arjel - 1) / (cote_ha - 0.03)
     if cash_ha < cash_necessaire:
         await ctx.send(f"❌ Vous avez besoin de {cash_necessaire:.2f}€ en cash HA pour respecter la mise minimale de 6€.")
         return
@@ -385,6 +386,7 @@ async def presentation(ctx):
         "2. **!conversion** : Effectue des conversions entre différentes cotes.\n"
         "3. **!historique** : Affiche l'historique des conversions précédentes.\n"
         "4. **!presentation** : Fournit une présentation des fonctionnalités du bot.\n"
+        "5. **Athlètes / Issues** : Spécifiez l'athlète ou l'issue pour les conversions.\n"
     )
     await ctx.send(presentation_message)
 
