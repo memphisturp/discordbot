@@ -376,6 +376,18 @@ async def historique(ctx, limit: int = 5):
     
     await ctx.send(response)
 
+@bot.command()
+async def presentation(ctx):
+    """Fournit une présentation rapide des fonctionnalités du bot."""
+    presentation_message = (
+        "👋 Bienvenue dans le bot de conversion ! Voici les commandes disponibles :\n"
+        "1. **!maxfb** : Calcule le montant maximum de freebet possible.\n"
+        "2. **!conversion** : Effectue des conversions entre différentes cotes.\n"
+        "3. **!historique** : Affiche l'historique des conversions précédentes.\n"
+        "4. **!presentation** : Fournit une présentation des fonctionnalités du bot.\n"
+    )
+    await ctx.send(presentation_message)
+
 # Démarrage du bot avec le serveur keep-alive
 if __name__ == "__main__":
     keep_alive()
