@@ -200,6 +200,22 @@ async def conversion(ctx):
         f"{commentaire}"
     )
 
+    # Demander à l'utilisateur s'il souhaite partager les résultats
+    await ctx.send("🔗 Voulez-vous partager ces résultats ? (oui/non)")
+    try:
+        msg_share = await bot.wait_for("message", check=check_author, timeout=120)
+        if msg_share.content.strip().lower() == "oui":
+            # Demander des informations pour le message final
+            athlete = await ask_for_input("🏅 Entrez l'athlète ou l'issue :", str)
+            heure = await ask_for_input("⏰ Entrez l'heure (ex: Demain 11h) :", str)
+            issue = await ask_for_input("📍 Entrez l'issue (ex: huetter -> winner) :", str)
+            message_final = f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n🏅 Athlète : {athlete}\n📍 Issue : {issue}\n⏰ Heure : {heure}\n\n🔢 Cotes :\n    •   ARJEL : {cote_arjel}\n    •   Lay : {cote_ha}\n💰 Liquidité disponible : {cash_necessaire:.2f}€"
+            await ctx.send(message_final)
+        else:
+            await ctx.send("❌ Pas de problème, à bientôt pour de nouvelles conversions, SBA's team !")
+    except Exception as e:
+        await ctx.send(f"⚠️ Une erreur est survenue : {e}")
+
     # Sauvegarde dans l'historique
     conversion_data = {
         'type': 'conversion',
@@ -270,6 +286,12 @@ async def maxfb(ctx):
         warning_mise_minimale += f"\n💡 Pour respecter la mise minimale de 6€ en HA :\n"
         warning_mise_minimale += f"   • Mise HA minimale : 6.00€\n"
         warning_mise_minimale += f"   • Freebet correspondant : {max_fb_min:.2f}€"
+
+    # Calcul du cash nécessaire pour respecter la mise minimale en HA
+    cash_necessaire = mise_ha_min * (cote_arjel - 1) / (cote_ha - 0.03)
+    if cash_ha < cash_necessaire:
+        await ctx.send(f"❌ Vous avez besoin de {cash_necessaire:.2f}€ en cash HA pour respecter la mise minimale de 6€.")
+        return
 
     # Calcul du taux de conversion
     ha_si_issue_arjel = -mise_ha * (cote_ha - 1)
