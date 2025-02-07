@@ -209,7 +209,8 @@ async def conversion(ctx):
             athlete = await ask_for_input("🏅 Entrez l'athlète/l'issue :", str)
             heure = await ask_for_input("⏰ Entrez l'heure (ex: Demain 11h) :", str)
             cash_disponible = await ask_for_input("💸 Entrez le cash disponible (en liability HA) :", str)
-            message_final = f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n🏅 Athlète : {athlete}\n⏰ Heure : {heure}\n💸 Cash disponible : {cash_disponible}\n\n🔢 Cotes :\n    •   ARJEL : {cote_arjel}\n    •   Lay : {cote_ha}\n💰 Liquidité disponible : {cash_necessaire:.2f}€"
+            message_final = f"Voici le message final de partage. Cash disponible (en liability HA) : {cash_disponible}"
+            message_final += f"💰 Liquidité disponible : {cash_necessaire:.2f}€"
             await ctx.send(message_final)
         else:
             await ctx.send("❌ Pas de problème, à bientôt pour de nouvelles conversions, SBA's team !")
@@ -332,7 +333,7 @@ async def maxfb(ctx):
         f"   • Cote HA : {cote_ha}\n"
         f"   • Cash HA disponible : {cash_ha}€\n"
         f"{warning_mise_minimale}\n"
-        f"💰 Cash HA nécessaire (en liability) pour faire cette conversion avec ces cotes et la mise minimale de 6€ : {liability_necessaire:.2f}€\n"
+        f"💰 Cash HA nécessaire (en liability) pour faire cette conversion avec ces cotes et la mise minimale de 6€ : {cash_necessaire:.2f}€\n"
     )
 
     # Afficher le message d'avertissement seulement si la mise minimale n'est pas respectée
