@@ -168,7 +168,7 @@ async def conversion(ctx):
     frais_ha = 0.03
 
     mise_arjel = nb_fb
-    mise_ha = (nb_fb * ((cote_arjel - 1) * (1 - frais_arjel) + 0)) / (cote_ha - frais_ha)
+    mise_ha = (nb_fb * ((cote_arjel - 1) * (1 - frais_arjel))) / (cote_ha - frais_ha)
     ha_si_issue_arjel = -mise_ha * (cote_ha - 1)
     arjel_si_cote_passe = nb_fb * (cote_arjel - 1) * (1 - frais_arjel)
     total_si_issue_arjel = ha_si_issue_arjel + arjel_si_cote_passe
@@ -191,7 +191,7 @@ async def conversion(ctx):
     else:
         couleur = "🟦"
 
-    # Étape 3 : Résultats
+    # Étape 3 : Affichage des résultats
     await ctx.send(
         f"{couleur} **Taux de conversion** : {taux_conversion:.2f}%\n"
         f"💸 **Nombre de freebets en ARJEL** : {mise_arjel:.2f}\n"
@@ -209,8 +209,12 @@ async def conversion(ctx):
             athlete = await ask_for_input("🏅 Entrez l'athlète/l'issue :", str)
             heure = await ask_for_input("⏰ Entrez l'heure (ex: Demain 11h) :", str)
             cash_disponible = await ask_for_input("💸 Entrez le cash disponible (en liability HA) :", str)
-            message_final = f"Voici le message final de partage. Cash disponible (en liability HA) : {cash_disponible}"
-            message_final += f"💰 Liquidité disponible : {cash_necessaire:.2f}€"
+            message_final = (
+                f"Voici le message final de partage :\n"
+                f"🏅 Athlète/Issue : {athlete}\n"
+                f"⏰ Heure : {heure}\n"
+                f"💰 Liquidité disponible : {cash_disponible}€"
+            )
             await ctx.send(message_final)
         else:
             await ctx.send("❌ Pas de problème, à bientôt pour de nouvelles conversions, SBA's team !")
@@ -231,6 +235,7 @@ async def conversion(ctx):
     }
     history_manager.add_conversion(conversion_data)
 
+# Commande pour le calcul du maximum de freebet
 @bot.command()
 async def maxfb(ctx):
     """Calcule le montant maximum de freebet possible avec le cash HA disponible"""
@@ -280,17 +285,21 @@ async def maxfb(ctx):
     # Vérification de la mise minimale en HA (6€)
     warning_mise_minimale = ""
     if mise_ha < 6:
-        warning_mise_minimale = "\n⚠️ **ATTENTION** : La mise en HA (stake) est inférieure à 6€, ce qui est sous le minimum requis sur HA !"
-        # Recalculer pour la mise minimale de 6€
-        mise_ha_min = 6
-        max_fb_min = mise_ha_min * (cote_ha - 0.03) / ((cote_arjel - 1) * (1 - 0))
-        cash_necessaire = mise_ha_min * (cote_arjel - 1) / (cote_ha - 0.03)
-        warning_mise_minimale += f"\n💡 Pour respecter la mise minimale de 6€ en HA :\n"
-        warning_mise_minimale += f"   • Mise HA minimale : 6.00€\n"
-        warning_mise_minimale += f"   • Freebet correspondant : {max_fb_min:.2f}€\n"
-        warning_mise_minimale += f"   • Cash à mettre (en stake) : {cash_necessaire:.2f}€"
+        warning_mise_minimale = "\n⚠️ **ATTENTION** : La mise en HA (stake) calculée est inférieure à 6€, ce qui est sous le minimum requis sur HA !"
+        # Recalculer pour respecter la mise minimale de 6€
+        mise_ha = 6  # On force la mise à 6€
+        max_fb = 6 * (cote_ha - 0.03) / (cote_arjel - 1)
+        cash_necessaire = 6 * (cote_arjel - 1) / (cote_ha - 0.03)
+        warning_mise_minimale += (
+            f"\n💡 Pour respecter la mise minimale de 6€ en HA :\n"
+            f"   • Mise HA minimale : 6.00€\n"
+            f"   • Freebet correspondant : {max_fb:.2f}€\n"
+            f"   • Cash à mettre (en stake) : {cash_necessaire:.2f}€"
+        )
+    else:
+        cash_necessaire = (cote_ha * mise_ha) - mise_ha
 
-    # Calcul du cash nécessaire pour respecter la mise minimale en HA
+    # Vérifier que le cash disponible est suffisant
     if cash_ha < cash_necessaire:
         await ctx.send(f"❌ Vous avez besoin de {cash_necessaire:.2f}€ en cash HA pour respecter la mise minimale de 6€.")
         return
@@ -317,11 +326,6 @@ async def maxfb(ctx):
     }
     history_manager.add_conversion(conversion_data)
 
-    # Calcul du cash nécessaire pour respecter la mise minimale en HA
-    cash_necessaire = mise_ha_min * (cote_arjel - 1) / (cote_ha - 0.03)
-
-   
-
     # Affichage des résultats
     result_message = (
         f"💫 **Résultats du calcul maximum**\n\n"
@@ -331,16 +335,11 @@ async def maxfb(ctx):
         f"ℹ️ Ces calculs sont basés sur :\n"
         f"   • Cote ARJEL : {cote_arjel}\n"
         f"   • Cote HA : {cote_ha}\n"
-        f"   • Cash HA disponible : {cash_ha}€\n"
+        f"   • Cash HA disponible : {cash_ha:.2f}€\n"
         f"{warning_mise_minimale}\n"
-        f"💰 Cash HA nécessaire (en liability) pour faire cette conversion avec ces cotes et la mise minimale de 6€ : {cash_necessaire:.2f}€\n"
+        f"💰 Liquidité disponible : {cash_necessaire:.2f}€\n"
     )
-
-    # Afficher le message d'avertissement seulement si la mise minimale n'est pas respectée
-    if mise_ha < 6:
-        await ctx.send(result_message)
-    else:
-        await ctx.send(result_message)
+    await ctx.send(result_message)
 
 @bot.command()
 async def historique(ctx, limit: int = 5):
