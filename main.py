@@ -208,7 +208,8 @@ async def conversion(ctx):
             # Demander des informations pour le message final
             athlete = await ask_for_input("🏅 Entrez l'athlète/l'issue :", str)
             heure = await ask_for_input("⏰ Entrez l'heure (ex: Demain 11h) :", str)
-            message_final = f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n🏅 Athlète : {athlete}\n⏰ Heure : {heure}\n\n🔢 Cotes :\n    •   ARJEL : {cote_arjel}\n    •   Lay : {cote_ha}\n💰 Liquidité disponible : {cash_necessaire:.2f}€"
+            cash_disponible = await ask_for_input("💸 Entrez le cash disponible (en liability HA) :", str)
+            message_final = f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n🏅 Athlète : {athlete}\n⏰ Heure : {heure}\n💸 Cash disponible : {cash_disponible}\n\n🔢 Cotes :\n    •   ARJEL : {cote_arjel}\n    •   Lay : {cote_ha}\n💰 Liquidité disponible : {cash_necessaire:.2f}€"
             await ctx.send(message_final)
         else:
             await ctx.send("❌ Pas de problème, à bientôt pour de nouvelles conversions, SBA's team !")
