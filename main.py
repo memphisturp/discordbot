@@ -1,7 +1,7 @@
 from flask import Flask
 from threading import Thread
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 from dotenv import load_dotenv
 import os
 import logging
@@ -81,6 +81,7 @@ def run():
 
 def keep_alive():
     t = Thread(target=run)
+    t.daemon = True  # Permet au thread de se fermer avec le programme
     t.start()
 
 # Fonctions utilitaires
@@ -191,7 +192,7 @@ async def conversion(ctx):
     else:
         couleur = "🟦"
 
-    # Étape 3 : Affichage des résultats
+    # Affichage des résultats initiaux
     await ctx.send(
         f"{couleur} **Taux de conversion** : {taux_conversion:.2f}%\n"
         f"💸 **Nombre de freebets en ARJEL** : {mise_arjel:.2f}\n"
@@ -206,14 +207,18 @@ async def conversion(ctx):
         msg_share = await bot.wait_for("message", check=check_author, timeout=120)
         if msg_share.content.strip().lower() == "oui":
             # Demander des informations pour le message final
-            athlete = await ask_for_input("🏅 Entrez l'athlète/l'issue :", str)
-            heure = await ask_for_input("⏰ Entrez l'heure (ex: Demain 11h) :", str)
-            cash_disponible = await ask_for_input("💸 Entrez le cash disponible (en liability HA) :", str)
+            athlete = await ask_for_input("🏅 **Entrez l'athlète/l'issue :**", str)
+            heure = await ask_for_input("⏰ **Entrez l'heure (ex: Demain 11h) :**", str)
+            cash_disponible = await ask_for_input("💸 **Entrez le cash disponible (en liability HA) :**", str)
+            # Message de partage formaté
             message_final = (
-                f"Voici le message final de partage :\n"
-                f"🏅 Athlète/Issue : {athlete}\n"
+                f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n"
+                f"🏅 Athlète : {athlete}\n"
                 f"⏰ Heure : {heure}\n"
-                f"💰 Liquidité disponible : {cash_disponible}€"
+                f"💸 Cash disponible : {cash_disponible}€\n\n"
+                f"🔢 Cotes :\n"
+                f"    •   ARJEL : {cote_arjel:.1f}\n"
+                f"    •   Lay : {cote_ha:.1f}"
             )
             await ctx.send(message_final)
         else:
@@ -286,8 +291,8 @@ async def maxfb(ctx):
     warning_mise_minimale = ""
     if mise_ha < 6:
         warning_mise_minimale = "\n⚠️ **ATTENTION** : La mise en HA (stake) calculée est inférieure à 6€, ce qui est sous le minimum requis sur HA !"
-        # Recalculer pour respecter la mise minimale de 6€
-        mise_ha = 6  # On force la mise à 6€
+        # Forcer la mise minimale à 6€
+        mise_ha = 6
         max_fb = 6 * (cote_ha - 0.03) / (cote_arjel - 1)
         cash_necessaire = 6 * (cote_arjel - 1) / (cote_ha - 0.03)
         warning_mise_minimale += (
