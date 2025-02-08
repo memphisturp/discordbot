@@ -96,7 +96,7 @@ def parse_float(value: str):
 
 def get_normalized_bookmaker(input_name: str):
     """
-    Renvoie le nom standard du bookmaker et son alias tel qu’entré.
+    Renvoie le nom standard du bookmaker et l'alias tel qu’entré.
     Si aucun alias ne correspond, retourne (None, input_name).
     """
     input_name = input_name.lower()
@@ -169,7 +169,7 @@ async def conversion(ctx):
     bookmaker_input = await ask_for_input(ctx, "Entrez le bookmaker :", lambda x: x)
     bookmaker, _ = get_normalized_bookmaker(bookmaker_input)
     if bookmaker is None:
-        bookmaker = bookmaker_input  # Utilisation de l'entrée brute si pas d'alias connu
+        bookmaker = bookmaker_input  # Utilisation de l'entrée brute si aucun alias connu
 
     # Calculs
     frais_arjel = 0
@@ -213,7 +213,6 @@ async def conversion(ctx):
     share_resp = await ask_for_input(ctx, "Votre réponse :", lambda x: x.lower())
     if share_resp != "oui":
         await ctx.send("❌ Pas de problème, à bientôt pour de nouvelles conversions !")
-        # Enregistrer la conversion avant de quitter
         history_manager.add_conversion({
             'type': 'conversion',
             'cote_arjel': cote_arjel,
@@ -232,7 +231,7 @@ async def conversion(ctx):
     heure = await ask_for_input(ctx, "⏰ **Entrez l'heure (ex: Demain 11h) :**", lambda x: x)
     cash_disponible = await ask_for_input(ctx, "💸 **Entrez le cash disponible (en liability HA) :**", lambda x: x)
 
-    # Format du message de partage (selon le format souhaité)
+    # Format du message de partage (selon le modèle souhaité)
     share_message = (
         f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n"
         f"🏅 Athlète : {athlete}\n"
@@ -369,7 +368,7 @@ async def historique(ctx, limit: int = 5):
 async def presentation(ctx):
     """Présente les fonctionnalités du bot."""
     presentation_message = (
-        "👋 Bienvenue dans le bot de conversion ! Voici les commandes disponibles :\n"
+        "👋 Bienvenue dans le bot de conversion crée par SBA's team ! Voici les commandes disponibles :\n"
         "1. **!conversion** : Effectue une conversion entre cotes et propose de partager le résultat.\n"
         "2. **!maxfb** : Calcule le maximum de freebet possible avec le cash HA disponible.\n"
         "3. **!historique** : Affiche l'historique des conversions enregistrées.\n"
@@ -380,9 +379,4 @@ async def presentation(ctx):
 # --- Démarrage du bot ---
 if __name__ == "__main__":
     keep_alive()
-    while True:
-        try:
-            bot.run(TOKEN)
-        except Exception as e:
-            logging.error(f"Erreur de connexion: {e}")
-            continue
+    bot.run(TOKEN)
