@@ -75,7 +75,8 @@ def home():
     return "Le bot est en ligne !"
 
 def run():
-    app.run(host='0.0.0.0', port=8080)
+    # Désactivation du reloader pour éviter que Flask ne lance plusieurs instances
+    app.run(host='0.0.0.0', port=8080, use_reloader=False)
 
 def keep_alive():
     t = Thread(target=run)
@@ -368,7 +369,7 @@ async def historique(ctx, limit: int = 5):
 async def presentation(ctx):
     """Présente les fonctionnalités du bot."""
     presentation_message = (
-        "👋 Bienvenue dans le bot de conversion crée par SBA's team ! Voici les commandes disponibles :\n"
+        "👋 Bienvenue dans le bot de conversion ! Voici les commandes disponibles :\n"
         "1. **!conversion** : Effectue une conversion entre cotes et propose de partager le résultat.\n"
         "2. **!maxfb** : Calcule le maximum de freebet possible avec le cash HA disponible.\n"
         "3. **!historique** : Affiche l'historique des conversions enregistrées.\n"
