@@ -237,7 +237,7 @@ async def conversion(ctx):
         f"🎯 Conversion {bookmaker} : {couleur} - {taux_conversion:.2f}% 🎯\n"
         f"🏅 Athlète : {athlete}\n"
         f"⏰ Heure : {heure}\n"
-        f"💸 Cash disponible : {cash_disponible}€\n\n"
+        f"💸 Cash disponible (en liability HA) : {cash_disponible}€\n\n"
         f"🔢 Cotes :\n"
         f"    •   ARJEL : {cote_arjel:.1f}\n"
         f"    •   Lay : {cote_ha:.1f}"
